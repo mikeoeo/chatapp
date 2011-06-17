@@ -7,7 +7,7 @@ import java.util.Comparator;
  *
  * @author 3070130-3070175
  */
-public class Token {
+public class Token extends AbstractMessage{
     //variables
     private short seq_number; //message sequence number
     private NetAddress[] node_list= new NetAddress[10]; //IP and port list of the nodes
