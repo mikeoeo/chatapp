@@ -9,6 +9,7 @@ package structs;
  * @author 3070130-3070175
  */
 public class Join extends AbstractMessage{
+    private static final long serialVersionUID = 1L;
     public Join(){
         
     }

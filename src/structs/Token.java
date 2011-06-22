@@ -1,31 +1,29 @@
 package structs;
 
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  *
  * @author 3070130-3070175
  */
 public class Token extends AbstractMessage{
+    private static final long serialVersionUID = 1L;
     //variables
     private short seq_number; //message sequence number
-    private NetAddress[] node_list= new NetAddress[10]; //IP and port list of the nodes
+    private List<NetAddress> node_list=new ArrayList<NetAddress>(); //IP and port list of the nodes
     
     //empty constructor
     public Token(){
         this.seq_number=0;
-        for(int i=0;i<10;i++){
-                this.node_list[i]=null;
-        }
+        this.node_list.clear();
     }
     //constructor with previous data
-    public Token(NetAddress[] nodes){
+    public Token(List<NetAddress> nodes){
         this.seq_number=0;
-        System.arraycopy(nodes, 0, this.node_list, 0, nodes.length);
-        for(int i=nodes.length;i<10;i++){
-            this.node_list[i]=null;
-        }
+        this.node_list.clear();
+        this.node_list.addAll(nodes);
     }
     
     //methods
@@ -34,40 +32,49 @@ public class Token extends AbstractMessage{
         return this.seq_number;
     }
     //returns the node list array
-    public NetAddress[] get_node_list(){
+    public List<NetAddress> get_node_list(){
         return this.node_list;
     }
     //returns a line from the node list array
-    public NetAddress get_node(int line){
-        return this.node_list[line];
+    public NetAddress get_node(int index){
+        return this.node_list.get(index);
     }
     //sets the message sequence number
     public void set_seq_number(short number){
         this.seq_number=number;
     }
     //sets the node list
-    public void set_node_list(NetAddress[] new_node_list){
-        this.node_list=new_node_list;
+    public void set_node_list(List<NetAddress> new_node_list){
+        this.node_list.clear();
+        this.node_list.addAll(new_node_list);
     }
     //adds one node in the node_list
     public void add_node(NetAddress addr){
-        int i = 0;
-        try{
-            for(i=0;i<10;i++){
-                this.get_node(i);
-            }
-        }
-        catch(NullPointerException e){
-            this.node_list[i]=addr;
-        }
+        this.node_list.add(addr);
     }
     //sorts the node list based in IP
     public void node_list_sort_by_IP(){
-        Arrays.sort(this.node_list, new Comparator<NetAddress>() {
-            @Override
-            public int compare(NetAddress entry1, NetAddress entry2) {
-                return entry1.toString().compareTo(entry2.toString());
+        List<String> tempList = new ArrayList<String>();
+        if(!this.node_list.isEmpty()){
+            int k=this.node_list.size();
+            for(int i=0;i<k;i++){
+                tempList.add(this.node_list.get(i).get_IP().getHostAddress());
             }
-        });
+            Collections.sort(tempList);
+            for(int i=0;i<k;i++){
+                this.node_list.add(this.get_node(i));
+            }
+            for(int i=0;i<k;i++){
+                for(int j=0;j<k;j++){
+                    if(this.node_list.get(k+i-1).get_IP().getHostAddress().compareTo(tempList.get(j))==0){
+                        this.node_list.set(j,this.node_list.get(k+i-1));
+                    }
+                }
+            }
+            int l=this.node_list.size();
+            for(int i=0;i<l-k;i++){
+                this.node_list.remove(k);
+            }
+        }        
     }
 }

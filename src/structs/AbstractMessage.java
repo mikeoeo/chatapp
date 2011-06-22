@@ -4,10 +4,13 @@
  */
 package structs;
 
+import java.io.Serializable;
+
 /**
  *
  * @author 3070130-3070175
  */
-public class AbstractMessage {
+public class AbstractMessage implements Serializable{
+    private static final long serialVersionUID = 1L;
     
 }

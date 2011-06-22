@@ -11,6 +11,7 @@ import java.net.UnknownHostException;
  * @author 3070130-3070175
  */
 public class Message extends AbstractMessage{
+    private static final long serialVersionUID = 1L;
     //variables
     private NetAddress sender;
     private short seq_number;

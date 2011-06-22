@@ -4,10 +4,13 @@
  */
 package main;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.List;
+import structs.AbstractMessage;
+import structs.Join;
+import structs.Message;
+import structs.NetAddress;
+import structs.Token;
 
 /**
  *
@@ -15,38 +18,43 @@ import java.util.Comparator;
  */
 public class chatapp {
     public static void main(String[] ars){
-        String[][] node_list=new String[10][2];
-        InetAddress[] nodes=new InetAddress[4];
-        try{
-        nodes[3]=InetAddress.getByName("localhost");
-        nodes[2]=InetAddress.getByName("www.google.com");
-        nodes[0]=InetAddress.getByName("www.google.com");
-        nodes[1]=InetAddress.getByName("www.aueb.com");
+        /*AbstractMessage abs = new Join();
+        if(abs instanceof Join){
+            System.out.println("abs Join");
         }
-        catch(UnknownHostException e){
-            
+        else if(abs instanceof Message){
+            System.out.println("abs Message");
         }
-        for(int i=0;i<4;i++){
-            System.out.println(nodes[i].toString());
+        else if(abs instanceof AbstractMessage){
+            System.out.println("abs AbstractMessage");
         }
-      /* String[][] temp=new String[2][3];
-        for(int i=0;i<3;i++){
-            temp[0][i]=nodes[i][0];
-            temp[1][i]=nodes[i][1];
+        Join join = new Join();
+        Object o=join;
+        Join j=(Join)o;
+        if(o instanceof Join){
+            System.out.println("o Join");
+        }
+        else if(o instanceof Message){
+            System.out.println("o Message");
+        }
+        else if(o instanceof AbstractMessage){
+            System.out.println("o AbstractMessage");
         }*/
-        Arrays.sort(nodes, new Comparator<InetAddress>() {
-            @Override
-            public int compare(InetAddress entry1, InetAddress entry2) {
-                return entry1.toString().compareTo(entry2.toString());
-            }
-        });
-      /*  for(int i=0;i<3;i++){
-            nodes[i][0]=temp[0][i];
-            nodes[i][1]=temp[1][i];
-        }*/
-        System.out.println(nodes[2].toString().compareTo(nodes[3].toString()));
-        for(int i=0;i<4;i++){
-            System.out.println(nodes[i].toString());
+        
+        List<NetAddress> list= new ArrayList<NetAddress>();
+        list.add(new NetAddress("192.168.1.3",6070));
+        list.add(new NetAddress("192.168.1.2",6070));
+        list.add(new NetAddress("192.168.0.25",6070));
+        list.add(new NetAddress("192.168.3.3",6070));
+        list.add(new NetAddress("192.168.0.1",6070));
+        
+        Token tok = new Token(list);
+        for(int i=0;i<tok.get_node_list().size();i++){
+            System.out.println(i+" "+tok.get_node_list().get(i).get_IP());
+        }
+        tok.node_list_sort_by_IP();
+        for(int i=0;i<tok.get_node_list().size();i++){
+            System.out.println(i+" "+tok.get_node_list().get(i).get_IP());
         }
     }
 }
