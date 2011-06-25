@@ -6,9 +6,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import structs.Join;
-import structs.Message;
-import structs.Token;
+import structs.Node;
 
 /**
  * Waits for new nodes to join
@@ -17,13 +15,12 @@ import structs.Token;
 public class ObjectListener extends ThreadInterface {
 
     private ServerSocket socket;
-
-    public ObjectListener(int port) {
-        try {
-            this.socket = new ServerSocket(port);
-        } catch (IOException ex) {
-            Logger.getLogger(ObjectListener.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    private Node node;
+    private int port;
+    
+    public ObjectListener(int port,Node node) {
+        this.node=node;
+        this.port=port;
     }
 
     @Override
@@ -34,23 +31,21 @@ public class ObjectListener extends ThreadInterface {
 
         while (true) {
             try {
+                this.socket = new ServerSocket(port);
                 clientListener = socket.accept();
-                
                 oinputstream = new ObjectInputStream(clientListener.getInputStream());
                 object = oinputstream.readObject();
-                
-                if(object instanceof Join) {
-                    System.out.println("Join received");
-                } else if(object instanceof Message) {
-                    System.out.println("Message received");
-                } else if(object instanceof Token) {
-                    System.out.println("Token received");
-                }
+                MessageHandler msghandler = new MessageHandler(object,clientListener.getInetAddress().getHostAddress(),6071,node);
+                oinputstream.close();
+                clientListener.close();
+                socket.close();
+                msghandler.start();
                 
             } catch (IOException ex) {
                 Logger.getLogger(ObjectListener.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(ObjectListener.class.getName()).log(Level.SEVERE, null, ex);
+                break;
             }
         }
 

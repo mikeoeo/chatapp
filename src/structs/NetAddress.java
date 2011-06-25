@@ -4,6 +4,7 @@
  */
 package structs;
 
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
@@ -14,40 +15,34 @@ import java.util.logging.Logger;
  *
  * @author 3070130-3070175
  */
-public class NetAddress{
-    private InetAddress IP;
+public class NetAddress implements Serializable{
+    private static final long serialVersionUID = 1L;
+    private String IP;
     private int port;
     
     //constructors
-    public NetAddress(InetAddress i,int p){
+    public NetAddress(String i,int p){
         this.IP=i;
         this.port=p;
     }
-    public NetAddress(String hostname,int p){
-        try {
-            this.IP=InetAddress.getByName(hostname);
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(NetAddress.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        this.port=p;
-    }
+    
     public NetAddress(int p){
         try {
-            this.IP=InetAddress.getLocalHost();
+            this.IP=InetAddress.getLocalHost().getHostAddress();
         } catch (UnknownHostException ex) {
             Logger.getLogger(NetAddress.class.getName()).log(Level.SEVERE, null, ex);
         }
         this.port=p;
     }
     //get methods
-    public InetAddress get_IP(){
+    public String get_IP(){
         return this.IP;
     }
     public int get_port(){
         return this.port;
     }
     //set methods
-    public void set_IP(InetAddress addr){
+    public void set_IP(String addr){
         this.IP=addr;
     }
     public void set_port(int p){

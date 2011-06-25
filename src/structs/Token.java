@@ -58,7 +58,7 @@ public class Token extends AbstractMessage{
         if(!this.node_list.isEmpty()){
             int k=this.node_list.size();
             for(int i=0;i<k;i++){
-                tempList.add(this.node_list.get(i).get_IP().getHostAddress());
+                tempList.add(this.node_list.get(i).get_IP());
             }
             Collections.sort(tempList);
             for(int i=0;i<k;i++){
@@ -66,7 +66,7 @@ public class Token extends AbstractMessage{
             }
             for(int i=0;i<k;i++){
                 for(int j=0;j<k;j++){
-                    if(this.node_list.get(k+i-1).get_IP().getHostAddress().compareTo(tempList.get(j))==0){
+                    if(this.node_list.get(k+i-1).get_IP().compareTo(tempList.get(j))==0){
                         this.node_list.set(j,this.node_list.get(k+i-1));
                     }
                 }

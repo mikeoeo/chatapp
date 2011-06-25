@@ -4,6 +4,7 @@
  */
 package structs;
 
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 /**
@@ -52,8 +53,8 @@ public class Message extends AbstractMessage{
     }
     
     //get methods
-    public NetAddress get_sender(){
-        return this.sender;
+    public String get_sender(){
+        return this.sender.get_IP();
     }
     public short get_seq_number(){
         return this.seq_number;

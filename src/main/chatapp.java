@@ -1,18 +1,10 @@
 package main;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.PrintStream;
-import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.List;
-import logic.ObjectListener;
-import structs.AbstractMessage;
-import structs.Join;
-import structs.Message;
 import structs.NetAddress;
-import structs.Token;
+import structs.Node;
 
 /**
  * Application core
@@ -35,7 +27,7 @@ public class chatapp {
     }
 
     public static void main(String[] ars) throws InterruptedException, UnknownHostException, IOException {
-
+        Node node;
         if (ars.length == 0) {
             usage(1);
         }
@@ -43,18 +35,21 @@ public class chatapp {
         if (ars[0].equalsIgnoreCase("-i")) {
             //initial node
             System.out.println("Creating initial node...");
-            ObjectListener listener = new ObjectListener(6070);
-            listener.start();
+            node = new Node();
+            /*ObjectListener listener = new ObjectListener(6070);
+            listener.start();*/
         } else if (ars[0].equalsIgnoreCase("-c")) {
             //new node with specific port
-            Join join = new Join();
+            node = new Node(ars[1], Integer.parseInt(ars[2]));
+            /*Join join = new Join();
             Socket socket = new Socket(ars[1], Integer.parseInt(ars[2]));
             ObjectOutputStream ooutputstream = new ObjectOutputStream(socket.getOutputStream());
             ooutputstream.writeObject(join);
-            ooutputstream.close();
+            ooutputstream.close();*/
         } else if (ars[0].equalsIgnoreCase("-s")) {
             //new node - search port
-            Join join = new Join();
+            node = new Node(ars[1]);
+            /*Join join = new Join();
             Socket socket;
             ObjectOutputStream ooutputstream;
             for (int i = 6070; i < 6080; i++) {
@@ -62,16 +57,11 @@ public class chatapp {
                 ooutputstream = new ObjectOutputStream(socket.getOutputStream());
                 ooutputstream.writeObject(join);
                 ooutputstream.close();
-            }
+            }*/
         } else if (ars[0].equalsIgnoreCase("-h")) {
             usage(0);
         } else {
             usage(1);
-        }
-
-        while (true) {
-            /* idle waiting*/
-            Thread.sleep(10000);
         }
     }
 }

@@ -4,33 +4,38 @@
  */
 package structs;
 
+import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.io.Serializable;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import logic.KeyStrokeListener;
+import logic.ObjectListener;
 
 /**
  *
  * @author 3070130-3070175
  */
-public class Node implements Runnable,Serializable{
+public class Node implements Serializable{
     private static final long serialVersionUID = 1L;
-    private List<NetAddress> nodelist;
-    private ServerSocket serversocket;
+    private ArrayList<NetAddress> nodelist=new ArrayList<NetAddress>();
+    private NetAddress address;
+    private String text;
+    private ObjectListener listener;
+    private KeyStrokeListener keylistener;
+   /* private ServerSocket serversocket;
     private Socket socket,ack=new Socket(),sendsocket;
     private Thread runner;
     private AbstractMessage mesg;
-    private NetAddress address;
-    private String text;
-    
-    @Override
+    */
+    /*@Override
     public void run() {
         try {
             serversocket = new ServerSocket(address.get_port());
@@ -98,6 +103,75 @@ public class Node implements Runnable,Serializable{
         
         
     }
+    */
+    public Node(){
+        try {
+            this.address=new NetAddress(InetAddress.getLocalHost().getHostAddress(),6070);
+            this.nodelist.add(address);
+            System.out.println("My address"+this.address);
+            this.listener = new ObjectListener(6070,this);
+            listener.start();
+            this.keylistener = new KeyStrokeListener();
+            keylistener.run();
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(Node.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public Node(int port){
+        this.address=new NetAddress(6070);
+    }
+    
+    public Node(String a_nodes_addr, int a_nodes_port){
+        try {
+            Join join = new Join();
+            Socket socket = new Socket(a_nodes_addr, a_nodes_port);
+            ObjectOutputStream ooutputstream = new ObjectOutputStream(socket.getOutputStream());
+            ooutputstream.writeObject(join);
+            ooutputstream.close();
+            ServerSocket waitforack = new ServerSocket(7060);
+            socket = waitforack.accept();
+            DataInputStream inp=new DataInputStream(socket.getInputStream());
+            byte ack=inp.readByte();
+            if(ack!=100){//predecided integer for ack
+                throw new IOException();
+            }
+            this.address=new NetAddress(InetAddress.getLocalHost().getHostAddress(),6071);
+            this.nodelist.add(address);
+            System.out.println("My address"+address);
+            this.nodelist.add(new NetAddress(a_nodes_addr,a_nodes_port));
+            System.out.println("My next's address"+new NetAddress(a_nodes_addr,a_nodes_port));
+            inp.close();
+            waitforack.close();
+            this.listener = new ObjectListener(6071,this);
+            listener.start();
+            this.keylistener = new KeyStrokeListener();
+            keylistener.run();
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(Node.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Node.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public Node(String a_nodes_addr){
+        Join join = new Join();
+        Socket socket;
+        ObjectOutputStream ooutputstream;
+        for (int i = 6070; i < 6080; i++) {
+            try {
+                socket = new Socket(a_nodes_addr, i);
+                ooutputstream = new ObjectOutputStream(socket.getOutputStream());
+                ooutputstream.writeObject(join);
+                ooutputstream.close();
+                break;
+            } catch (UnknownHostException ex) {
+                Logger.getLogger(Node.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(Node.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
     
     public Node(NetAddress addr){
         this.address=addr;
@@ -108,7 +182,15 @@ public class Node implements Runnable,Serializable{
     }
     
     public NetAddress getNextNode(){
-        return this.nodelist.get(this.nodelist.indexOf(this.address)+1);
+        if(this.nodelist.indexOf(this.address)+1<this.nodelist.size()){
+            return this.nodelist.get(this.nodelist.indexOf(this.address)+1);
+        }
+        else if(this.nodelist.indexOf(this.address)+1==this.nodelist.size()){
+            return this.nodelist.get(0);
+        }
+        else{
+            throw new IndexOutOfBoundsException();
+        }
     }
     
     public void set_node_list(List<NetAddress> new_node_list){
@@ -116,10 +198,18 @@ public class Node implements Runnable,Serializable{
         this.nodelist.addAll(new_node_list);
     }
     
+    public ArrayList<NetAddress> getNodeList(){
+        return this.nodelist;
+    }
+    
+    public ArrayList<String> getMsg(){
+        return this.keylistener.getMsglist();
+    }
+    
     /**
      * Starts the execution of the thread.
      */
-    public void start()
+   /* public void start()
     {
         if (runner == null)
         {
@@ -127,12 +217,12 @@ public class Node implements Runnable,Serializable{
             runner.setDaemon(true);
             runner.start();
         }
-    }
+    }*/
 
     /**
      * Stops the execution of the thread.
      */
-    public void stop()
+   /* public void stop()
     {
         try 
         {
@@ -145,10 +235,10 @@ public class Node implements Runnable,Serializable{
         runner.interrupt();
         runner = null;
     }
-    
-    public Thread getThread()
+    */
+   /* public Thread getThread()
     {
         return this.runner;
     }
-    
+    */
 }
