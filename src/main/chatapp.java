@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import logic.KeyStrokeListener;
 import logic.ObjectListener;
 import structs.AbstractMessage;
 import structs.Join;
@@ -69,9 +70,8 @@ public class chatapp {
             usage(1);
         }
 
-        while (true) {
-            /* idle waiting*/
-            Thread.sleep(10000);
-        }
+        KeyStrokeListener keylistener = new KeyStrokeListener();
+        keylistener.run();
+        
     }
 }
