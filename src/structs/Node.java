@@ -107,11 +107,11 @@ public class Node implements Serializable{
     public Node(){
         try {
             this.address=new NetAddress(InetAddress.getLocalHost().getHostAddress(),6070);
-            this.nodelist.add(address);
-            System.out.println("My address"+this.address);
-            this.listener = new ObjectListener(6070,this);
-            listener.start();
+            this.nodelist.add(this.address);
+            System.out.println("My address"+this.address+" "+this.nodelist.contains(this.address)+" "+this.nodelist.indexOf(this.address));
             this.keylistener = new KeyStrokeListener();
+            this.listener = new ObjectListener(6070,this,this.keylistener);
+            listener.start();
             keylistener.run();
         } catch (UnknownHostException ex) {
             Logger.getLogger(Node.class.getName()).log(Level.SEVERE, null, ex);
@@ -143,9 +143,9 @@ public class Node implements Serializable{
             System.out.println("My next's address"+new NetAddress(a_nodes_addr,a_nodes_port));
             inp.close();
             waitforack.close();
-            this.listener = new ObjectListener(6071,this);
-            listener.start();
             this.keylistener = new KeyStrokeListener();
+            this.listener = new ObjectListener(6071,this,this.keylistener);
+            listener.start();
             keylistener.run();
         } catch (UnknownHostException ex) {
             Logger.getLogger(Node.class.getName()).log(Level.SEVERE, null, ex);
@@ -173,23 +173,29 @@ public class Node implements Serializable{
         }
     }
     
-    public Node(NetAddress addr){
-        this.address=addr;
-    }
-    
     public void addNodeToList(NetAddress n){
         this.nodelist.add(n);
     }
     
     public NetAddress getNextNode(){
-        if(this.nodelist.indexOf(this.address)+1<this.nodelist.size()){
-            return this.nodelist.get(this.nodelist.indexOf(this.address)+1);
+        NetAddress next;
+        int i=0;
+        String temp;
+        for(;i<this.nodelist.size();i++){
+            temp=""+this.nodelist.get(i).get_IP()+":"+this.nodelist.get(i).get_port();
+            if(temp.equals(this.address.get_IP()+":"+this.address.get_port())){
+                break;
+            }
         }
-        else if(this.nodelist.indexOf(this.address)+1==this.nodelist.size()){
+        
+        if(i+1==this.nodelist.size()){
             return this.nodelist.get(0);
         }
+        else if(i!=this.nodelist.size()){
+            return this.nodelist.get(i+1);
+        }
         else{
-            throw new IndexOutOfBoundsException();
+            throw new NullPointerException(this.address+" isn't in the list");
         }
     }
     
@@ -202,8 +208,16 @@ public class Node implements Serializable{
         return this.nodelist;
     }
     
-    public ArrayList<String> getMsg(){
+    public String getMsg(){
         return this.keylistener.getMsglist();
+    }
+
+    public int get_port() {
+        return this.address.get_port();
+    }
+
+    public NetAddress getAddress() {
+        return this.address;
     }
     
     /**

@@ -27,12 +27,12 @@ public class Message extends AbstractMessage{
         this.message=mess;
     }
     //sender=localhost
-    public Message(short numb,byte length,String mess) throws UnknownHostException{
+   /* public Message(short numb,byte length,String mess) throws UnknownHostException{
         this.sender=new NetAddress(6070);
         this.seq_number=numb;
         this.message_length=length;
         this.message=mess;
-    }
+    }*/
     public Message(NetAddress addr,short numb,String mess){
         this.sender=addr;
         this.seq_number=numb;
@@ -53,8 +53,11 @@ public class Message extends AbstractMessage{
     }
     
     //get methods
-    public String get_sender(){
+    public String get_senders_IP(){
         return this.sender.get_IP();
+    }
+    public int get_senders_port(){
+        return this.sender.get_port();
     }
     public short get_seq_number(){
         return this.seq_number;

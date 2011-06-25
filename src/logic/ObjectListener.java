@@ -17,10 +17,12 @@ public class ObjectListener extends ThreadInterface {
     private ServerSocket socket;
     private Node node;
     private int port;
+    private KeyStrokeListener keylisten;
     
-    public ObjectListener(int port,Node node) {
+    public ObjectListener(int port, Node node, KeyStrokeListener keylist) {
         this.node=node;
         this.port=port;
+        this.keylisten=keylist;
     }
 
     @Override
@@ -35,7 +37,7 @@ public class ObjectListener extends ThreadInterface {
                 clientListener = socket.accept();
                 oinputstream = new ObjectInputStream(clientListener.getInputStream());
                 object = oinputstream.readObject();
-                MessageHandler msghandler = new MessageHandler(object,clientListener.getInetAddress().getHostAddress(),6071,node);
+                MessageHandler msghandler = new MessageHandler(object,clientListener.getInetAddress().getHostAddress(),6071,this.node,this.keylisten);
                 oinputstream.close();
                 clientListener.close();
                 socket.close();

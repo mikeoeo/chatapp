@@ -20,14 +20,16 @@ public class KeyStrokeListener implements Runnable {
             message = in.nextLine();
             System.out.println("Message: " + message + " length:" + message.length());
             synchronized (this) {
-                getMsglist().add(message);
+                this.msglist.add(message);
             }
         }
     }
 
-    synchronized public ArrayList<String> getMsglist() {
-        @SuppressWarnings("unchecked")
-        ArrayList<String> list = (ArrayList<String>) msglist.clone();
+    synchronized public String getMsglist() {
+        String list="";
+        for(int i=0;i<this.msglist.size();i++){
+            list+=this.msglist.get(i);
+        }
         msglist.clear();
         return list;
     }

@@ -29,12 +29,14 @@ public class MessageHandler extends ThreadInterface{
     private int port;
     private Socket sendsocket=new Socket();
     private Node node;
+    private KeyStrokeListener keylisten;
     
-    public MessageHandler(Object msg,String addr, int port, Node node) throws IOException{
+    public MessageHandler(Object msg,String addr, int port, Node node, KeyStrokeListener keylisten) throws IOException{
         this.mesg=msg;
         this.addr=addr;
         this.port=port;
         this.node=node;
+        this.keylisten=keylisten;
     }
     
     @Override
@@ -66,9 +68,10 @@ public class MessageHandler extends ThreadInterface{
                 node.addNodeToList(new NetAddress(this.addr,this.port));
             }
             else if(mesg instanceof Message){
-                System.out.println("Message received");
                 Message msg = (Message)mesg;
-                if(InetAddress.getLocalHost().getHostAddress().equals(msg.get_sender())){
+                System.out.println("Message");
+                System.out.println(this.node.get_port()+" sent this message to "+msg.get_senders_port());
+                if(this.node.get_port()==msg.get_senders_port()){
                     NetAddress next=node.getNextNode();
                     sendsocket=new Socket(next.get_IP(),next.get_port());
                     OutputStream temp=sendsocket.getOutputStream();
@@ -79,7 +82,7 @@ public class MessageHandler extends ThreadInterface{
                     sendsocket.close();
                 }
                 else{
-                    System.out.println(msg.get_message());
+                    System.out.println("Correct at last: "+msg.get_message());
                     NetAddress next=node.getNextNode();
                     sendsocket=new Socket(next.get_IP(),next.get_port());
                     OutputStream temp=sendsocket.getOutputStream();
@@ -91,15 +94,12 @@ public class MessageHandler extends ThreadInterface{
                 }
             }
             else if(mesg instanceof Token){
-                System.out.println("Token received");
                 Token msg = (Token) mesg;
-                ArrayList<String> textlist = new ArrayList<String>(node.getMsg());
-                String text="";
-                for(int i=0;i<textlist.size();i++){
-                    text+=textlist.get(i);
-                }
+                System.out.println("Token");
+                String text=this.keylisten.getMsglist();
                 if(!text.isEmpty()){
-                    Message newmesg = new Message((short)(msg.get_seq_number()+1),(byte)text.length(),text);
+                    System.out.println("I'm about to send this message: "+text+" with length: "+(byte)text.length());
+                    Message newmesg = new Message(node.getAddress(),(short)(msg.get_seq_number()+1),text);
                     node.set_node_list(msg.get_node_list());
                     NetAddress next=node.getNextNode();
                     sendsocket=new Socket(next.get_IP(),next.get_port());
