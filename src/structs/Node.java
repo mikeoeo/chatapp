@@ -148,7 +148,6 @@ public class Node implements Serializable{
     
     public void addWaitingNodesToList(){
         if(!this.nodelisttobe.isEmpty()){
-        System.out.println(this.nodelisttobe+" has been added");
         this.nodelist.addAll(this.nodelisttobe);
         this.nodelisttobe.clear();
         }
@@ -197,12 +196,15 @@ public class Node implements Serializable{
     }
 
     public void NodeToBeAddedToList(NetAddress netAddress) {
-        System.out.println(netAddress+" is waiting to be added");
         this.nodelisttobe.add(netAddress);
     }
     
     public boolean isFirst(){
         return false;
+    }
+
+    public void removeNode(NetAddress next) {
+        this.nodelist.remove(next);
     }
     
     /**

@@ -41,18 +41,39 @@ public class MessageHandler extends ThreadInterface{
                 Join msg=(Join) mesg;
                 int senderport=msg.getSender_addr().get_port();
                 node.NodeToBeAddedToList(new NetAddress(msg.getSender_addr().get_IP(),senderport));
-                System.out.println("Join received");
+                System.out.println("* Join received from "+msg.getSender_addr()+":"+senderport);
                 try{
                     Socket socket = new Socket("localhost",7060);
                     DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                     byte buffer = (byte)100;
                     out.writeByte(buffer);
                     out.flush();
-                    System.out.println("My next's address"+new NetAddress(msg.getSender_addr().get_IP(),senderport));
+                    System.out.println("* My next's address"+new NetAddress(msg.getSender_addr().get_IP(),senderport));
                     if(node.getNodeList().size()==1){
-                        System.out.println("new token!");
+                        System.out.println("* New token!");
                         node.addWaitingNodesToList();
+                        System.out.println("* Replies with an ACK");
                         Socket send=new Socket(msg.getSender_addr().get_IP(),senderport);
+                        NetAddress next=new NetAddress(msg.getSender_addr().get_IP(),senderport);
+                        sendsocket=null;
+                        int i;
+                        while(true){
+                            i=0;
+                            for(;i<3;i++){
+                                try {
+                                    sendsocket=new Socket(msg.getSender_addr().get_IP(),senderport);
+                                    break;
+                                } catch (IOException asd) {
+                                    if(i==3){
+                                        node.removeNode(next);
+                                        next=node.getNextNode();
+                                    }
+                                }
+                            }
+                            if(sendsocket!=null) {
+                                break;
+                            }
+                        }
                         ObjectOutputStream obj = new ObjectOutputStream(send.getOutputStream());
                         obj.writeObject(new Token(node.getNodeList()));
                         obj.close();
@@ -65,22 +86,41 @@ public class MessageHandler extends ThreadInterface{
                 }
             }
             else if(mesg instanceof Message){
-                System.out.println("Message");
                 Message msg = (Message)mesg;
+                System.out.println("* Message received with sequence number: "+msg.get_seq_number()+" from "+msg.get_senders_IP());
                 //System.out.println("Message");
                 //System.out.println(this.node.get_port()+" sent this message to "+msg.get_senders_port());
                 if(this.node.get_port()==msg.get_senders_port()){
                     if(node.isFirst()){
-                        System.out.println("this node is first!");
                         FirstNode n=(FirstNode)node;
                         Message last = null;
                         try {
                             last = n.getLastMessageSeen();
                             if(last.get_seq_number()!=msg.get_seq_number()){
                                 NetAddress next=node.getNextNode();
-                                sendsocket=new Socket(next.get_IP(),next.get_port());
+                                sendsocket=null;
+                                int i;
+                                while(true){
+                                    i=0;
+                                    for(;i<3;i++){
+                                        try {
+                                            sendsocket=new Socket(next.get_IP(),next.get_port());
+                                            break;
+                                        } catch (IOException asd) {
+                                            if(i==3){
+                                                node.removeNode(next);
+                                                next=node.getNextNode();
+                                            }
+                                        }
+                                    }
+                                    if(sendsocket!=null) {
+                                        break;
+                                    }
+                                }
                                 OutputStream temp=sendsocket.getOutputStream();
                                 ObjectOutputStream out=new ObjectOutputStream(temp);
+                                System.out.println("* Create and send token with sequence number: "
+                                        +(msg.get_seq_number()+1)+" to "+next.get_IP()+":"+next.get_port());
                                 out.writeObject(new Token(node.getNodeList(),(short)(msg.get_seq_number()+1)));
                                 out.close();
                                 temp.close();
@@ -89,9 +129,29 @@ public class MessageHandler extends ThreadInterface{
                             }
                         } catch (NullPointerException e) {
                             NetAddress next=node.getNextNode();
-                            sendsocket=new Socket(next.get_IP(),next.get_port());
+                            sendsocket=null;
+                            int i;
+                            while(true){
+                                i=0;
+                                for(;i<3;i++){
+                                    try {
+                                        sendsocket=new Socket(next.get_IP(),next.get_port());
+                                        break;
+                                    } catch (IOException asd) {
+                                        if(i==3){
+                                            node.removeNode(next);
+                                            next=node.getNextNode();
+                                        }
+                                    }
+                                }
+                                if(sendsocket!=null) {
+                                    break;
+                                }
+                            }
                             OutputStream temp=sendsocket.getOutputStream();
                             ObjectOutputStream out=new ObjectOutputStream(temp);
+                            System.out.println("* Create and send token with sequence number: "+
+                                    (msg.get_seq_number()+1)+" to "+next.get_IP()+":"+next.get_port());
                             out.writeObject(new Token(node.getNodeList(),(short)(msg.get_seq_number()+1)));
                             out.close();
                             temp.close();
@@ -101,7 +161,25 @@ public class MessageHandler extends ThreadInterface{
                     }
                     else{
                         NetAddress next=node.getNextNode();
-                        sendsocket=new Socket(next.get_IP(),next.get_port());
+                        sendsocket=null;
+                        int i;
+                        while(true){
+                            i=0;
+                            for(;i<3;i++){
+                                try {
+                                    sendsocket=new Socket(next.get_IP(),next.get_port());
+                                    break;
+                                } catch (IOException asd) {
+                                    if(i==3){
+                                        node.removeNode(next);
+                                        next=node.getNextNode();
+                                    }
+                                }
+                            }
+                            if(sendsocket!=null) {
+                                break;
+                            }
+                        }
                         OutputStream temp=sendsocket.getOutputStream();
                         ObjectOutputStream out=new ObjectOutputStream(temp);
                         out.writeObject(new Token(node.getNodeList(),(short)(msg.get_seq_number()+1)));
@@ -111,9 +189,28 @@ public class MessageHandler extends ThreadInterface{
                     }
                 }
                 else{
-                    System.out.println(msg.get_message());
+                    System.out.println(">>"+msg.get_message());
+                    System.out.println("* Message forwarding - sequence number: "+(msg.get_seq_number()));
                     NetAddress next=node.getNextNode();
-                    sendsocket=new Socket(next.get_IP(),next.get_port());
+                    sendsocket=null;
+                    int i;
+                    while(true){
+                        i=0;
+                        for(;i<3;i++){
+                            try {
+                                sendsocket=new Socket(next.get_IP(),next.get_port());
+                                break;
+                            } catch (IOException asd) {
+                                if(i==3){
+                                    node.removeNode(next);
+                                    next=node.getNextNode();
+                                }
+                            }
+                        }
+                        if(sendsocket!=null) {
+                            break;
+                        }
+                    }
                     OutputStream temp=sendsocket.getOutputStream();
                     ObjectOutputStream out=new ObjectOutputStream(temp);
                     out.writeObject(msg);
@@ -123,29 +220,46 @@ public class MessageHandler extends ThreadInterface{
                 }
             }
             else if(mesg instanceof Token){
-                //System.out.println("Token");
                 Token msg = (Token) mesg;
-                //System.out.println("Token's node list: "+msg.get_node_list());
+                //System.out.println("* Token received - last sequense number: "+msg.get_seq_number());
                 node.set_node_list(msg.get_node_list());
                 node.addWaitingNodesToList();
-                //System.out.println("This is my new list: "+node.getNodeList());
                 boolean bool=true;
                 /*if(node.isFirst()){
-                    System.out.println("this node is first!");
                     FirstNode n=(FirstNode)node;
                     try{
-                        bool=n.getLastTokenSeen().equals(msg);
+                        bool=n.getLastTokenSeen().hashCode()==(msg.hashCode());
                     } catch(NullPointerException e){
                         bool=true;
                     }*/
                     if(bool){
                         String text=this.keylisten.getMsglist();
                         if(!text.isEmpty()){
-                            System.out.println("I'm about to send this message: "+text+" with length: "+(byte)text.length());
+                            //System.out.println("* I'm about to send this message: "+text+" with length: "
+                            //        + ""+(byte)text.length()+" and sequense number: "+(msg.get_seq_number()+1));
                             Message newmesg = new Message(node.getAddress(),(short)(msg.get_seq_number()+1),text);
                             //node.set_node_list(msg.get_node_list());
                             NetAddress next=node.getNextNode();
-                            sendsocket=new Socket(next.get_IP(),next.get_port());
+                            sendsocket=null;
+                            int i;
+                            while(true){
+                                i=0;
+                                for(;i<3;i++){
+                                    try {
+                                        sendsocket=new Socket(next.get_IP(),next.get_port());
+                                        break;
+                                    } catch (IOException asd) {
+                                        System.out.println("Someone failed 3!");
+                                        if(i==3){
+                                            node.removeNode(next);
+                                            next=node.getNextNode();
+                                        }
+                                    }
+                                }
+                                if(sendsocket!=null) {
+                                    break;
+                                }
+                            }
                             OutputStream temp=sendsocket.getOutputStream();
                             ObjectOutputStream out=new ObjectOutputStream(temp);
                             out.writeObject(newmesg);
@@ -155,17 +269,38 @@ public class MessageHandler extends ThreadInterface{
                         }
                         else{
                             NetAddress next=node.getNextNode();
-                            sendsocket=new Socket(next.get_IP(),next.get_port());
+                            sendsocket=null;
+                            int i;
+                            while(true){
+                                i=0;
+                                for(;i<3;i++){
+                                    try {
+                                        sendsocket=new Socket(next.get_IP(),next.get_port());
+                                        break;
+                                    } catch (IOException asd) {
+                                        System.err.println("Someone failed 3 times!");
+                                        if(i==3){
+                                            node.removeNode(next);
+                                            next=node.getNextNode();
+                                        }
+                                    }
+                                }
+                                if(sendsocket!=null) {
+                                    break;
+                                }
+                            }
                             OutputStream temp=sendsocket.getOutputStream();
                             ObjectOutputStream out=new ObjectOutputStream(temp);
-                            out.writeObject(new Token(node.getNodeList(),msg.get_seq_number()));
+                            //System.out.println("* I'm about to send a token"+
+                            //        " - sequense number: "+(msg.get_seq_number()));
+                            out.writeObject(new Token(node.getNodeList(), msg.get_seq_number()));
                             out.close();
                             temp.close();
                             sendsocket.close();
                         }
                         //n.setLastTokenSeen(msg);
-                    }
-                /*}
+                    //}
+                }
                 else{
                     String text=this.keylisten.getMsglist();
                     if(!text.isEmpty()){
@@ -191,7 +326,7 @@ public class MessageHandler extends ThreadInterface{
                         temp.close();
                         sendsocket.close();
                     }
-                }*/
+                }
                 
             }
         } catch (IOException ex) {
