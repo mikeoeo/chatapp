@@ -13,16 +13,18 @@ public class KeyStrokeListener implements Runnable {
 
     @Override
     public void run() {
-        Scanner in;
+        Scanner in = new Scanner(System.in);
         String message;
-        while (true) {
-            in = new Scanner(System.in);
+        while (in.hasNextLine()) {
             message = in.nextLine();
             System.out.println("Message: " + message + " length:" + message.length());
             synchronized (this) {
                 this.msglist.add(message);
             }
         }
+        //if EOF (ctrl-D in unix based systems, ctrl-Z in MS-DOS based systems)
+        //exits loop
+        //print statistics and other messages
     }
 
     synchronized public String getMsglist() {
@@ -34,4 +36,3 @@ public class KeyStrokeListener implements Runnable {
         return list;
     }
 }
-

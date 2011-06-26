@@ -42,23 +42,9 @@ public class chatapp {
         } else if (ars[0].equalsIgnoreCase("-c")) {
             //new node with specific port
             node = new Node(ars[1], Integer.parseInt(ars[2]));
-            /*Join join = new Join();
-            Socket socket = new Socket(ars[1], Integer.parseInt(ars[2]));
-            ObjectOutputStream ooutputstream = new ObjectOutputStream(socket.getOutputStream());
-            ooutputstream.writeObject(join);
-            ooutputstream.close();*/
         } else if (ars[0].equalsIgnoreCase("-s")) {
             //new node - search port
             node = new Node(ars[1]);
-            /*Join join = new Join();
-            Socket socket;
-            ObjectOutputStream ooutputstream;
-            for (int i = 6070; i < 6080; i++) {
-                socket = new Socket(ars[1], i);
-                ooutputstream = new ObjectOutputStream(socket.getOutputStream());
-                ooutputstream.writeObject(join);
-                ooutputstream.close();
-            }*/
         } else if (ars[0].equalsIgnoreCase("-h")) {
             usage(0);
         } else {
