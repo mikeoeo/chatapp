@@ -37,7 +37,7 @@ public class ObjectListener extends ThreadInterface {
                 clientListener = socket.accept();
                 oinputstream = new ObjectInputStream(clientListener.getInputStream());
                 object = oinputstream.readObject();
-                MessageHandler msghandler = new MessageHandler(object,clientListener.getInetAddress().getHostAddress(),6071,this.node,this.keylisten);
+                MessageHandler msghandler = new MessageHandler(object,this.node,this.keylisten);
                 oinputstream.close();
                 clientListener.close();
                 socket.close();

@@ -26,89 +26,16 @@ import logic.ObjectListener;
 public class Node implements Serializable{
     private static final long serialVersionUID = 1L;
     private ArrayList<NetAddress> nodelist=new ArrayList<NetAddress>();
+    private ArrayList<NetAddress> nodelisttobe=new ArrayList<NetAddress>();
     private NetAddress address;
     private String text;
     private ObjectListener listener;
     private KeyStrokeListener keylistener;
-   /* private ServerSocket serversocket;
-    private Socket socket,ack=new Socket(),sendsocket;
-    private Thread runner;
-    private AbstractMessage mesg;
-    */
-    /*@Override
-    public void run() {
-        try {
-            serversocket = new ServerSocket(address.get_port());
-            socket = serversocket.accept();
-            InputStream inp = socket.getInputStream();
-            ObjectInputStream in = new ObjectInputStream(inp);
-            mesg = (AbstractMessage) in.readObject();
-            if(mesg instanceof Join){
-                try{
-                ack.connect(socket.getRemoteSocketAddress());
-                ack.sendUrgentData(256);//ack
-                } catch (IOException ex) {
-                    Logger.getLogger(Node.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                this.addNodeToList(new NetAddress(socket.getInetAddress(),socket.getPort()));
-            }
-            else if(mesg instanceof Message){
-                Message msg = (Message)mesg;
-                if(socket.getLocalSocketAddress().equals(socket.getRemoteSocketAddress())){
-                    NetAddress next=this.getNextNode();
-                    sendsocket=new Socket(next.get_IP(),next.get_port());
-                    OutputStream temp=sendsocket.getOutputStream();
-                    ObjectOutputStream out=new ObjectOutputStream(temp);
-                    out.writeObject(new Token(this.nodelist));
-                }
-                else{
-                    System.out.println(msg.get_message());
-                    NetAddress next=this.getNextNode();
-                    sendsocket=new Socket(next.get_IP(),next.get_port());
-                    OutputStream temp=sendsocket.getOutputStream();
-                    ObjectOutputStream out=new ObjectOutputStream(temp);
-                    out.writeObject(mesg);
-                }
-            }
-            else if(mesg instanceof Token){
-                Token msg = (Token) mesg;
-                if(!this.text.isEmpty()){
-                    Message newmesg = new Message((short)(msg.get_seq_number()+1),(byte)this.text.length(),this.text);
-                    this.set_node_list(msg.get_node_list());
-                    NetAddress next=this.getNextNode();
-                    sendsocket=new Socket(next.get_IP(),next.get_port());
-                    OutputStream temp=sendsocket.getOutputStream();
-                    ObjectOutputStream out=new ObjectOutputStream(temp);
-                    out.writeObject(newmesg);
-                }
-                else{
-                    NetAddress next=this.getNextNode();
-                    sendsocket=new Socket(next.get_IP(),next.get_port());
-                    OutputStream temp=sendsocket.getOutputStream();
-                    ObjectOutputStream out=new ObjectOutputStream(temp);
-                    out.writeObject(msg);
-                }
-            }
-            
-            in.close();
-            socket.close();
-            serversocket.close();
-        }
-        catch (ClassNotFoundException ex) {
-            Logger.getLogger(Node.class.getName()).log(Level.SEVERE, null, ex);
-        
-        } catch (IOException ex) {
-            Logger.getLogger(Node.class.getName()).log(Level.SEVERE, null, ex);
-        } 
-        
-        
-    }
-    */
     public Node(){
         try {
             this.address=new NetAddress(InetAddress.getLocalHost().getHostAddress(),6070);
             this.nodelist.add(this.address);
-            System.out.println("My address"+this.address+" "+this.nodelist.contains(this.address)+" "+this.nodelist.indexOf(this.address));
+            //System.out.println("My address: "+this.address);
             this.keylistener = new KeyStrokeListener();
             this.listener = new ObjectListener(6070,this,this.keylistener);
             listener.start();
@@ -118,13 +45,21 @@ public class Node implements Serializable{
         }
     }
     
-    public Node(int port){
-        this.address=new NetAddress(6070);
-    }
-    
     public Node(String a_nodes_addr, int a_nodes_port){
         try {
-            Join join = new Join();
+            ServerSocket ss = null;
+            int j;
+            for (j = 6070; j < 6080; j++) {
+                try {
+                    ss = new ServerSocket(j);
+                    System.out.println("Found free port: "+j);
+                    break;
+                } catch (IOException ex) {
+                }
+            }
+            ss.close();
+            Join join = new Join(new NetAddress(InetAddress.getLocalHost().getHostAddress(),j));
+            
             Socket socket = new Socket(a_nodes_addr, a_nodes_port);
             ObjectOutputStream ooutputstream = new ObjectOutputStream(socket.getOutputStream());
             ooutputstream.writeObject(join);
@@ -136,15 +71,15 @@ public class Node implements Serializable{
             if(ack!=100){//predecided integer for ack
                 throw new IOException();
             }
-            this.address=new NetAddress(InetAddress.getLocalHost().getHostAddress(),6071);
-            this.nodelist.add(address);
-            System.out.println("My address"+address);
+            this.address=new NetAddress(InetAddress.getLocalHost().getHostAddress(),j);
+            /*this.nodelist.add(address);
+            System.out.println("My address: "+address);
             this.nodelist.add(new NetAddress(a_nodes_addr,a_nodes_port));
-            System.out.println("My next's address"+new NetAddress(a_nodes_addr,a_nodes_port));
-            inp.close();
+            System.out.println("My next's address: "+new NetAddress(a_nodes_addr,a_nodes_port));
+            */inp.close();
             waitforack.close();
             this.keylistener = new KeyStrokeListener();
-            this.listener = new ObjectListener(6071,this,this.keylistener);
+            this.listener = new ObjectListener(j,this,this.keylistener);
             listener.start();
             keylistener.run();
         } catch (UnknownHostException ex) {
@@ -155,30 +90,71 @@ public class Node implements Serializable{
     }
     
     public Node(String a_nodes_addr){
-        Join join = new Join();
-        Socket socket;
-        ObjectOutputStream ooutputstream;
-        for (int i = 6070; i < 6080; i++) {
-            try {
-                socket = new Socket(a_nodes_addr, i);
-                ooutputstream = new ObjectOutputStream(socket.getOutputStream());
-                ooutputstream.writeObject(join);
-                ooutputstream.close();
-                break;
-            } catch (UnknownHostException ex) {
-                Logger.getLogger(Node.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
-                Logger.getLogger(Node.class.getName()).log(Level.SEVERE, null, ex);
+        try {
+            ServerSocket ss = null;
+            int j;
+            for (j = 6070; j < 6080; j++) {
+                try {
+                    ss = new ServerSocket(j);
+                    System.out.println("Found free port: "+j);
+                    break;
+                } catch (IOException ex) {
+                }
             }
+            if(j==6080){
+                throw new IOException("Max number of nodes connected");
+            }
+            ss.close();
+            Join join = new Join(new NetAddress(InetAddress.getLocalHost().getHostAddress(),j));
+            Socket socket;
+            ObjectOutputStream ooutputstream;
+            int i;
+            for (i = 6070; i < 6080; i++) {
+                try {
+                    socket = new Socket(a_nodes_addr, i);
+                    ooutputstream = new ObjectOutputStream(socket.getOutputStream());
+                    ooutputstream.writeObject(join);
+                    ooutputstream.close();
+                    break;
+                } catch (UnknownHostException ex) {
+                    Logger.getLogger(Node.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(Node.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            ServerSocket waitforack = new ServerSocket(7060);
+            socket = waitforack.accept();
+            DataInputStream inp=new DataInputStream(socket.getInputStream());
+            byte ack=inp.readByte();
+            if(ack!=100){//predecided integer for ack
+                throw new IOException();
+            }
+            this.address=new NetAddress(InetAddress.getLocalHost().getHostAddress(),j);
+            /*this.nodelist.add(address);*/
+            //System.out.println("My address: "+address);
+            //this.nodelist.add(new NetAddress(a_nodes_addr,i));
+            //System.out.println("My next's address: "+new NetAddress(a_nodes_addr,i));
+            inp.close();
+            waitforack.close();
+            this.keylistener = new KeyStrokeListener();
+            this.listener = new ObjectListener(j,this,this.keylistener);
+            listener.start();
+            keylistener.run();
+        } catch (IOException ex) {
+            Logger.getLogger(Node.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }
+    
+    public void addWaitingNodesToList(){
+        if(!this.nodelisttobe.isEmpty()){
+        System.out.println(this.nodelisttobe+" has been added");
+        this.nodelist.addAll(this.nodelisttobe);
+        this.nodelisttobe.clear();
         }
     }
     
-    public void addNodeToList(NetAddress n){
-        this.nodelist.add(n);
-    }
-    
     public NetAddress getNextNode(){
-        NetAddress next;
         int i=0;
         String temp;
         for(;i<this.nodelist.size();i++){
@@ -195,7 +171,7 @@ public class Node implements Serializable{
             return this.nodelist.get(i+1);
         }
         else{
-            throw new NullPointerException(this.address+" isn't in the list");
+            throw new NullPointerException(this.address+" isn't in the list: "+this.getNodeList());
         }
     }
     
@@ -218,6 +194,15 @@ public class Node implements Serializable{
 
     public NetAddress getAddress() {
         return this.address;
+    }
+
+    public void NodeToBeAddedToList(NetAddress netAddress) {
+        System.out.println(netAddress+" is waiting to be added");
+        this.nodelisttobe.add(netAddress);
+    }
+    
+    public boolean isFirst(){
+        return false;
     }
     
     /**

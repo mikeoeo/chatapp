@@ -10,7 +10,13 @@ package structs;
  */
 public class Join extends AbstractMessage{
     private static final long serialVersionUID = 1L;
-    public Join(){
-        
+    private NetAddress sender_addr;
+    
+    public Join(NetAddress sender_addr){
+        this.sender_addr=sender_addr;
+    }
+    
+    public NetAddress getSender_addr() {
+        return sender_addr;
     }
 }

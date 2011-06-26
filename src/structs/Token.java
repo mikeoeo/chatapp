@@ -26,6 +26,13 @@ public class Token extends AbstractMessage{
         this.node_list.addAll(nodes);
     }
     
+    //constructor with previous data
+    public Token(List<NetAddress> nodes,short cut){
+        this.seq_number=cut;
+        this.node_list.clear();
+        this.node_list.addAll(nodes);
+    }
+    
     //methods
     //returns the message sequence number
     public short get_seq_number(){

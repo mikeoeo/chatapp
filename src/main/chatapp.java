@@ -3,6 +3,7 @@ package main;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.List;
+import structs.FirstNode;
 import structs.NetAddress;
 import structs.Node;
 
@@ -35,7 +36,7 @@ public class chatapp {
         if (ars[0].equalsIgnoreCase("-i")) {
             //initial node
             System.out.println("Creating initial node...");
-            node = new Node();
+            node = new FirstNode();
             /*ObjectListener listener = new ObjectListener(6070);
             listener.start();*/
         } else if (ars[0].equalsIgnoreCase("-c")) {
